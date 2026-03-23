@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HISAAB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="script.js"></script>
+    <style>
+        .modal-bg {
+            background: rgba(30, 58, 138, 0.4);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+
+<body class="bg-white min-h-screen font-sans text-slate-900">
+
+    <div id="loader" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center gap-3">
+        <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-blue-400 text-sm font-bold">Loading ₹₹₹</p>
+    </div>
+
+    <div id="dashboard" class="max-w-md mx-auto p-6">
+        <h1 class="text-3xl font-black mb-8 text-blue-600">₹ HISAAB</h1>
+        <div class="relative mb-8">
+            <input type="text" id="searchBar" placeholder="Search records..."
+                class="w-full p-4 pl-12 rounded-2xl border border-blue-100 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-slate-50">
+            <svg class="w-5 h-5 absolute left-4 top-4 text-blue-400" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+        <div id="userList" class="space-y-4"></div>
+        <button onclick="showModal('addUserModal')"
+            class="fixed bottom-8 right-8 bg-blue-600 text-white w-14 h-14 rounded-full shadow-xl hover:bg-blue-700 transition-all flex items-center justify-center">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+            </svg>
+        </button>
+    </div>
+
+    <div id="detailView" class="hidden max-w-md mx-auto bg-white min-h-screen relative">
+        <div class="bg-blue-600 p-8 text-white">
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="closeDetail()"
+                    class="text-blue-100 flex items-center gap-1 hover:text-white transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                        </path>
+                    </svg>
+                    Back
+                </button>
+                <button onclick="confirmDeleteUser()"
+                    class="bg-white/20 hover:bg-red-500 transition-all text-white w-9 h-9 rounded-full flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <h2 id="currentUserName" class="text-4xl font-bold mb-6">Name</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white/10 p-3 rounded-xl border border-white/20">
+                    <label class="text-[10px] uppercase font-bold text-blue-100">Interest (%)</label>
+                    <input type="number" id="rateInput" oninput="updateSettings()"
+                        class="bg-transparent text-xl font-bold w-full outline-none">
+                </div>
+                <div class="bg-white/10 p-3 rounded-xl border border-white/20">
+                    <label class="text-[10px] uppercase font-bold text-blue-100">Duration (Months)</label>
+                    <input type="number" id="timeInput" oninput="updateSettings()"
+                        class="bg-transparent text-xl font-bold w-full outline-none">
+                </div>
+            </div>
+        </div>
+        <div class="p-6 -mt-4 bg-white rounded-t-[32px]">
+            <div class="space-y-4 mb-8">
+                <div class="bg-blue-50 p-5 rounded-2xl border border-blue-100">
+                    <p class="text-[11px] text-blue-600 font-bold uppercase tracking-wider">Principal Given</p>
+                    <p id="principalDisplay" class="text-3xl font-mono font-bold text-blue-800">0</p>
+                </div>
+                <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100">
+                    <p class="text-[11px] text-emerald-600 font-bold uppercase tracking-wider">Net Balance</p>
+                    <p id="totalBalance" class="text-3xl font-mono font-bold text-emerald-800">0</p>
+                </div>
+                <div class="bg-red-50 p-5 rounded-2xl border border-red-100">
+                    <p class="text-[11px] text-red-600 font-bold uppercase tracking-wider">Per Month Installment</p>
+                    <p id="emiDisplay" class="text-3xl font-mono font-bold text-red-800">0</p>
+                </div>
+            </div>
+            <button onclick="showModal('addRecordModal')"
+                class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold mb-8 shadow-lg shadow-blue-200">
+                Record Payment
+            </button>
+            <div id="transactionLogs" class="space-y-3 pb-10"></div>
+        </div>
+    </div>
+
+    <div id="addUserModal" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl">
+            <h3 class="text-2xl font-bold mb-6 text-blue-900">New Record</h3>
+            <div class="space-y-4 mb-8">
+                <input type="text" id="newUserName" placeholder="Person's Name"
+                    class="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="newPrincipal" placeholder="Amount Given" inputmode="numeric"
+                    class="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 ml-2 mb-1 block uppercase">Date Given</label>
+                    <input type="date" id="newDateGiven"
+                        class="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="hideModal('addUserModal')" class="flex-1 py-4 text-slate-400 font-bold">Cancel</button>
+                <button onclick="processNewUser()"
+                    class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addRecordModal" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl">
+            <h3 class="text-2xl font-bold mb-6 text-blue-900">Received Payment</h3>
+            <div class="space-y-4 mb-8">
+                <input type="text" id="recAmount" placeholder="Amount Received" inputmode="numeric"
+                    class="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="date" id="recDate"
+                    class="w-full p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex gap-4">
+                <button onclick="hideModal('addRecordModal')"
+                    class="flex-1 py-4 text-slate-400 font-bold">Cancel</button>
+                <button onclick="addTransaction()"
+                    class="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-bold">Save Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteUserModal" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl">
+            <div class="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-5">
+                <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                    </path>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold mb-2 text-slate-900 text-center">Delete Person?</h3>
+            <p class="text-slate-400 text-sm text-center mb-8">This will permanently delete <span
+                    id="deleteUserNameLabel" class="font-bold text-red-500"></span> and all their payment history.</p>
+            <div class="flex gap-4">
+                <button onclick="hideModal('deleteUserModal')"
+                    class="flex-1 py-4 bg-slate-100 text-slate-600 font-bold rounded-2xl">Cancel</button>
+                <button onclick="deleteUser()" class="flex-1 py-4 bg-red-500 text-white rounded-2xl font-bold">Yes,
+                    Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deletePaymentModal" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl">
+            <div class="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-5">
+                <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                    </path>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold mb-2 text-slate-900 text-center">Delete Payment?</h3>
+            <p class="text-slate-400 text-sm text-center mb-2">Are you sure you want to remove this payment record?</p>
+            <p class="text-center font-mono font-bold text-red-500 text-xl mb-8" id="deletePaymentLabel"></p>
+            <div class="flex gap-4">
+                <button onclick="hideModal('deletePaymentModal')"
+                    class="flex-1 py-4 bg-slate-100 text-slate-600 font-bold rounded-2xl">Cancel</button>
+                <button onclick="confirmDeletePayment()"
+                    class="flex-1 py-4 bg-red-500 text-white rounded-2xl font-bold">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
