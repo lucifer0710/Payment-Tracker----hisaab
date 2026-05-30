@@ -22,8 +22,49 @@
         <p class="text-blue-400 text-sm font-bold">Loading ₹₹₹</p>
     </div>
 
-    <div id="dashboard" class="max-w-md mx-auto p-6">
-        <h1 class="text-3xl font-black mb-8 text-blue-600">₹ HISAAB</h1>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="hidden min-h-screen flex flex-col items-center justify-center bg-gradient-to-tr from-slate-50 to-blue-50/50 p-6">
+        <div class="w-full max-w-sm bg-white/70 backdrop-blur-md rounded-[32px] p-8 border border-white shadow-2xl flex flex-col items-center text-center">
+            <div class="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center shadow-lg shadow-blue-200 mb-6 text-white font-black text-4xl">
+                ₹
+            </div>
+            
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Welcome to Hisaab</h2>
+            <p class="text-slate-500 text-sm mb-8 max-w-xs">Track, manage, and calculate your personal payments and interest securely in one place.</p>
+            
+            <button id="googleSignInBtn" class="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 py-4 px-6 rounded-2xl font-bold shadow-sm hover:bg-slate-50 hover:shadow transition-all duration-200 active:scale-95">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="matrix(1, 0, 0, 1, 0, 0)">
+                        <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.6h3.28c1.92,-1.78 3.03,-4.4 3.03,-7.4c0,-0.69 -0.06,-1.35 -0.18,-2H21.35z" fill="#4285F4" />
+                        <path d="M12,20.6c2.43,0 4.47,-0.8 5.96,-2.2l-3.28,-2.6c-0.9,0.6 -2.07,0.98 -3.41,0.98 -2.62,0 -4.84,-1.77 -5.63,-4.15H2.2v2.7c1.5,2.99 4.6,5.05 8.2,5.05z" fill="#34A853" />
+                        <path d="M6.37,12.63C6.18,12.05 6.07,11.42 6.07,10.78c0,-0.64 0.11,-1.27 0.3,-1.85V6.23H2.2C1.5,7.63 1.1,9.2 1.1,10.78c0,1.58 0.4,3.15 1.1,4.55l3.17,-2.7z" fill="#FBBC05" />
+                        <path d="M12,5.92c1.32,0 2.5,0.45 3.44,1.35l2.58,-2.58C16.46,3.23 14.42,2.4 12,2.4c-3.6,0 -6.7,2.06 -8.2,5.05l3.17,2.7C7.76,7.69 9.98,5.92(12,5.92z" fill="#EA4335" />
+                    </g>
+                </svg>
+                Sign in with Google
+            </button>
+            
+            <div class="mt-8 text-xs text-slate-400 flex items-center gap-1.5 justify-center">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                Secure 256-bit SSL encrypted tracking
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard" class="hidden max-w-md mx-auto p-6">
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-3xl font-black text-blue-600">₹ HISAAB</h1>
+            <div id="userProfile" class="flex items-center gap-3">
+                <img id="userAvatar" class="w-8 h-8 rounded-full border border-slate-200" src="" alt="Profile">
+                <button id="signOutBtn" class="text-slate-400 hover:text-red-500 transition-colors duration-200" title="Sign Out">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
         <div class="relative mb-8">
             <input type="text" id="searchBar" placeholder="Search records..."
                 class="w-full p-4 pl-12 rounded-2xl border border-blue-100 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-slate-50">

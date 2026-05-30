@@ -1,5 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
 // PASTE YOUR FIREBASE CONFIG HERE 
 const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
@@ -12,13 +14,19 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+let currentUser = null;
+let unsubscribeFirestore = null;
 
 async function saveUser(name, userData) {
-    await setDoc(doc(db, "records", name), userData);
+    if (!currentUser) return;
+    await setDoc(doc(db, "users", currentUser.uid, "records", name), userData);
 }
 
 async function removeUser(name) {
-    await deleteDoc(doc(db, "records", name));
+    if (!currentUser) return;
+    await deleteDoc(doc(db, "users", currentUser.uid, "records", name));
 }
 
 let data = {};
@@ -26,13 +34,37 @@ let activeUser = null;
 let pendingDeletePaymentIndex = null;
 let initialLoadDone = false;
 
-window.addEventListener('DOMContentLoaded', () => {
+async function loginWithGoogle() {
     showLoader(true);
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('newDateGiven').value = today;
-    document.getElementById('recDate').value = today;
+    const provider = new GoogleAuthProvider();
+    try {
+        await signInWithPopup(auth, provider);
+    } catch (error) {
+        console.error("Sign-in failed:", error);
+        alert("Authentication failed: " + error.message);
+        showLoader(false);
+    }
+}
 
-    onSnapshot(collection(db, "records"), (snap) => {
+async function logout() {
+    showLoader(true);
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error("Sign-out failed:", error);
+        showLoader(false);
+    }
+}
+
+function setupFirestoreListener(uid) {
+    showLoader(true);
+    initialLoadDone = false;
+
+    if (unsubscribeFirestore) {
+        unsubscribeFirestore();
+    }
+
+    unsubscribeFirestore = onSnapshot(collection(db, "users", uid, "records"), (snap) => {
         if (!initialLoadDone) {
             data = {};
             snap.forEach(d => { data[d.id] = d.data(); });
@@ -54,13 +86,68 @@ window.addEventListener('DOMContentLoaded', () => {
     }, (error) => {
         showLoader(false);
         document.getElementById('loader').innerHTML = `
-                    <div class="text-center p-8">
-                        <p class="text-red-500 font-bold text-lg mb-2">Firebase connection failed</p>
-                        <p class="text-slate-400 text-sm mb-2">This is usually a Firestore security rules issue.</p>
-                        <p class="text-slate-400 text-xs mb-4">Go to Firebase Console → Firestore → Rules and set:<br><code class="bg-slate-100 px-2 py-1 rounded text-slate-700">allow read, write: if true;</code></p>
+                    <div class="text-center p-8 bg-white fixed inset-0 flex flex-col items-center justify-center z-[100]">
+                        <p class="text-red-500 font-bold text-lg mb-2">Firestore connection failed</p>
+                        <p class="text-slate-400 text-sm mb-2">This is usually because the Firestore security rules are not set up correctly.</p>
+                        <p class="text-slate-400 text-xs mb-4">Go to Firebase Console → Firestore → Rules and publish:<br>
+                        <pre class="bg-slate-100 p-3 rounded text-left text-xs text-slate-700 max-w-sm overflow-x-auto">
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/records/{recordId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}</pre></p>
                         <p class="text-slate-300 text-xs mt-2">${error.message}</p>
+                        <button onclick="window.location.reload()" class="mt-4 px-6 py-2.5 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg hover:bg-blue-700 transition">Retry</button>
                     </div>`;
         document.getElementById('loader').classList.remove('hidden');
+    });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    showLoader(true);
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('newDateGiven').value = today;
+    document.getElementById('recDate').value = today;
+
+    // Attach authentication action listeners
+    document.getElementById('googleSignInBtn').addEventListener('click', loginWithGoogle);
+    document.getElementById('signOutBtn').addEventListener('click', logout);
+
+    // Watch authentication state changes
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            
+            // Set User Avatar and Profile Image
+            const avatarEl = document.getElementById('userAvatar');
+            if (avatarEl && user.photoURL) {
+                avatarEl.src = user.photoURL;
+                avatarEl.alt = user.displayName || 'Profile';
+            }
+            
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            
+            setupFirestoreListener(user.uid);
+        } else {
+            currentUser = null;
+            data = {};
+            activeUser = null;
+            initialLoadDone = false;
+
+            if (unsubscribeFirestore) {
+                unsubscribeFirestore();
+                unsubscribeFirestore = null;
+            }
+
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('detailView').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            showLoader(false);
+        }
     });
 });
 

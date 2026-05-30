@@ -6,6 +6,8 @@ A clean, mobile-first web app to track personal loans and payment records, built
 
 ## Features
 
+- **Google Sign-In:** Users authenticate with their Google accounts before accessing the tracker.
+- **Secure Data Isolation:** Each user's profiles, borrowers, and payments are private and fully isolated from other users.
 - **Add borrowers** with principal amount and date given
 - **Set interest rate (%)** and **loan duration (months)** per person
 - **Auto-calculates** total payable amount, net balance remaining, and monthly EMI
@@ -65,24 +67,28 @@ const firebaseConfig = {
 };
 ```
 
-### 3. Set Firestore Rules
+### 3. Enable Google Sign-In in Firebase
 
-In Firebase Console → **Firestore → Rules**, set:
+1. Go to **Authentication** -> **Sign-in method** -> **Add new provider** in Firebase Console.
+2. Select **Google**, enable it, and click **Save**.
 
-```
+### 4. Set Firestore Rules
+
+In Firebase Console → **Firestore Database → Rules**, paste and publish:
+
+```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
+    // Allow users to read and write only their own records under the users path
+    match /users/{userId}/records/{recordId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
 ```
 
-> ⚠️ This is for personal/trusted use. Add authentication before making the app public.
-
-### 4. Run the app
+### 5. Run the app
 
 Simply open `index.html` in a browser, or serve it with any static file server:
 
