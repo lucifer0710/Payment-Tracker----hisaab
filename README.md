@@ -6,8 +6,6 @@ A clean, mobile-first web app to track personal loans and payment records, built
 
 ## Features
 
-- **Google Sign-In:** Users authenticate with their Google accounts before accessing the tracker.
-- **Secure Data Isolation:** Each user's profiles, borrowers, and payments are private and fully isolated from other users.
 - **Add borrowers** with principal amount and date given
 - **Set interest rate (%)** and **loan duration (months)** per person
 - **Auto-calculates** total payable amount, net balance remaining, and monthly EMI
@@ -49,52 +47,54 @@ git clone https://github.com/your-username/hisaab.git
 cd hisaab
 ```
 
-### 2. Set up Firebase
+### 2. Set up Environment Variables
 
-1. Go to [Firebase Console](https://console.firebase.google.com/) and create a new project
-2. Enable **Firestore Database** (in test mode for development)
-3. Register a **Web App** and copy your Firebase config
-4. In `script.js`, replace the `firebaseConfig` object with your own:
+Create a `.env` file in the root directory (based on `.env.example`) and fill in your Firebase configuration keys:
 
-```js
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-};
+```env
+VITE_FIREBASE_API_KEY=YOUR_API_KEY
+VITE_FIREBASE_AUTH_DOMAIN=YOUR_PROJECT.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=YOUR_PROJECT_ID
+VITE_FIREBASE_STORAGE_BUCKET=YOUR_PROJECT.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=YOUR_SENDER_ID
+VITE_FIREBASE_APP_ID=YOUR_APP_ID
+VITE_FIREBASE_MEASUREMENT_ID=YOUR_MEASUREMENT_ID
 ```
 
-### 3. Enable Google Sign-In in Firebase
+*Note: Since `.env` is listed in `.gitignore`, it will not be committed to GitHub, keeping your keys safe.*
 
-1. Go to **Authentication** -> **Sign-in method** -> **Add new provider** in Firebase Console.
-2. Select **Google**, enable it, and click **Save**.
+### 3. Run the app locally
 
-### 4. Set Firestore Rules
-
-In Firebase Console → **Firestore Database → Rules**, paste and publish:
-
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Allow users to read and write only their own records under the users path
-    match /users/{userId}/records/{recordId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-  }
-}
-```
-
-### 5. Run the app
-
-Simply open `index.html` in a browser, or serve it with any static file server:
+First, install dependencies:
 
 ```bash
-npx serve .
+npm install
 ```
+
+Then start the Vite local development server:
+
+```bash
+npm run dev
+```
+
+---
+
+## Deploying to Vercel
+
+When deploying to Vercel, you can safely configure your API keys as secret environment variables:
+
+1. Import your project into Vercel.
+2. Vercel will automatically detect the **Vite** project configuration.
+3. Before building, go to **Project Settings** → **Environment Variables** in Vercel.
+4. Add the following environment variables with your Firebase details:
+   - `VITE_FIREBASE_API_KEY`
+   - `VITE_FIREBASE_AUTH_DOMAIN`
+   - `VITE_FIREBASE_PROJECT_ID`
+   - `VITE_FIREBASE_STORAGE_BUCKET`
+   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+   - `VITE_FIREBASE_APP_ID`
+   - `VITE_FIREBASE_MEASUREMENT_ID`
+5. Trigger a deployment. Your keys will be securely injected at build time!
 
 ---
 
